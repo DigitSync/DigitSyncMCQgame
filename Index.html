@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KBC-Style Quiz Game</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background-color: #1e212d;
+            color: #f5f5f5;
+            margin: 0;
+        }
+        .container {
+            background-color: #2e2f3e;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            width: 80%;
+            max-width: 600px;
+            display: none;
+        }
+        .visible {
+            display: block;
+        }
+        .question {
+            font-size: 1.2em;
+            margin-bottom: 20px;
+        }
+        .options {
+            list-style: none;
+            padding: 0;
+        }
+        .options li {
+            margin: 10px 0;
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #6c7ae0;
+            border: none;
+            color: #fff;
+            cursor: pointer;
+            border-radius: 5px;
+            font-size: 1em;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #5a6bcb;
+        }
+        .lifelines, .score {
+            margin-top: 20px;
+        }
+        .correct {
+            background-color: #28a745;
+            animation: blink-green 1s ease-in-out;
+        }
+        .incorrect {
+            background-color: #dc3545;
+            animation: blink-red 1s ease-in-out;
+        }
+        @keyframes blink-green {
+            0%, 100% { background-color: #28a745; }
+            50% { background-color: #6c7ae0; }
+        }
+        @keyframes blink-red {
+            0%, 100% { background-color: #dc3545; }
+            50% { background-color: #6c7ae0; }
+        }
+        .hidden {
+            display: none;
+        }
+        .rules {
+            font-size: 0.9em;
+            margin-bottom: 20px;
+            color: #ccc;
+        }
+        .lives {
+            font-size: 1.5em;
+            margin-bottom: 10px;
+        }
+        .info-button {
+            margin-top: 20px;
+            background-color: #f0ad4e;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.8);
+            text-align: center;
+            padding-top: 60px;
+        }
+        .modal-content {
+            background-color: #2e2f3e;
+            margin: 5% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            color: #fff;
+        }
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+        .close:hover,
+        .close:focus {
+            color: #000;
+            text-decoration: none;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container registration-container visible" id="registrationContainer">
+    <h1>Register for KBC Quiz</h1>
+    <input type="text" id="name" placeholder="Enter your name" required><br><br>
+    <input type="email" id="email" placeholder="Enter your email" required><br><br>
+    <input type="password" id="password" placeholder="Create a password" required><br><br>
+    <button onclick="register()">Register</button>
+    <button class="info-button" onclick="showInfo()">Information</button>
+</div>
+
+<div class="container login-container" id="loginContainer">
+    <h1>Login to KBC Quiz</h1>
+    <input type="email" id="loginEmail" placeholder="Enter your email" required><br><br>
+    <input type="password" id="loginPassword" placeholder="Enter your password" required><br><br>
+    <button onclick="login()">Login</button>
+</div>
+
+<div id="infoModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeInfo()">&times;</span>
+        <h2>Game Information</h2>
+        <p>Welcome to the Quiz Challenge Simulator!</p>
+        <p>Created by Rouf Uddin Ahmed, a teacher at E-MAX COMPUTER EDUCATION, this engaging platform is designed to captivate your interest with a KBC-style game. It's perfect for children and quiz enthusiasts who are eager to test their knowledge across 15 exciting questions. Inspired by the iconic "Kaun Banega Crorepati" show, this game invites you to challenge yourself, enhancing both your learning and enjoyment.</p>
+        <p><strong>Rules:</strong></p>
+        <ul>
+            <li>Answer each question correctly to increase your virtual prize amount.</li>
+            <li>You have three lives; the game will end if you answer incorrectly three times.</li>
+            <li>Utilize lifelines like 50:50 and Skip to navigate through tough questions.</li>
+            <li>Engage with the game and enjoy a chance to earn a <b>certificate</b> upon successful completion.</li>
+        </ul>
+        <p>This game is designed to simulate a real quiz experience with an engaging twist, making learning both fun and rewarding. Good luck!</p>
+    </div>
+</div>
+
+<div class="container quiz-container" id="quizContainer">
+    <h2 id="welcomeMessage"></h2>
+    <div class="lives" id="lives">Lives: ❤️❤️❤️</div>
+    <div class="rules">Can you win ₹1 Crore? It's tough, but you have 3 lifelines for mistakes. Complete the quiz to earn a certificate!</div>
+    <div class="question" id="question">Loading...</div>
+    <ul class="options" id="options"></ul>
+    <div class="lifelines" id="lifelines">
+        <span class="lifeline" id="fiftyFifty" onclick="useFiftyFifty()">50:50</span>
+        <span class="lifeline" id="skip" onclick="useSkip()">Skip</span>
+    </div>
+    <div class="score" id="score">Current Prize: ₹1</div>
+</div>
+
+<div class="container winner-container" id="winnerContainer">
+    <h1>Congratulations!</h1>
+    <p>You have won ₹1 Crore!</p>
+    <button onclick="withdraw()">Withdraw Prize</button>
+</div>
+
+<div class="container withdraw-container" id="withdrawContainer">
+    <h1>Withdraw Your Prize</h1>
+    <input type="text" id="bankAccount" placeholder="Enter your bank account" required><br><br>
+    <input type="text" id="ifsc" placeholder="Enter IFSC code" required><br><br>
+    <button onclick="processWithdrawal()">Submit</button>
+</div>
+
+<div class="container success-container" id="successContainer">
+    <h1>Withdrawal Successful!</h1>
+    <p>Your prize will be processed in 7 days.</p>
+    <button onclick="printCertificate()">Print Certificate</button>
+</div>
+
+<script>
+    const questions = [
+        { question: "What is the full form of PGDCA?", options: ["Post Graduate Diploma in Computer Application", "Professional Graduate Diploma in Computer Application", "Post Graduate Diploma in Computer Architecture", "Professional Graduate Diploma in Computer Architecture"], answer: 0 },
+        { question: "Which is a programming language?", options: ["HTML", "CSS", "HTTP", "Python"], answer: 3 },
+        { question: "Which of the following is NOT a tab available in MS Word?", options: ["Home", "Insert", "Design", "Save"], answer: 3 },
+        { question: "What can you do in the Font option in MS Word?", options: ["Change text style", "Add bullets", "Adjust line spacing", "Create tables"], answer: 0 },
+        { question: "What is the first step to create a slide in PowerPoint?", options: ["Add content", "Choose a slide layout", "Open PowerPoint", "Select a theme"], answer: 2 },
+        { question: "How do you create a table in MS Access?", options: ["Go to Insert tab", "Click on Table Design", "Use a template", "Draw a table manually"], answer: 1 },
+        { question: "What is a primary key in a database?", options: ["A unique identifier for each record", "A type of data", "A command to delete records", "An index for faster querying"], answer: 0 },
+        { question: "What is mail merge used for?", options: ["Creating tables", "Personalizing documents", "Editing images", "Formatting text"], answer: 1 },
+        { question: "Which option allows you to adjust paragraph alignment in MS Word?", options: ["Font", "Bullets and Numbering", "Paragraph", "Page Layout"], answer: 2 },
+        { question: "How can you create charts in MS Excel?", options: ["Select data range", "Use drawing tools", "Insert a picture", "Add a comment"], answer: 0 },
+        { question: "How can you replace multiple wrong words in MS Word?", options: ["Use the Replace feature", "Manually edit each word", "Use Find", "Change the font"], answer: 0 },
+        { question: "What is a bookmark in MS Word?", options: ["A feature for quick navigation", "A type of text formatting", "An image", "A page number"], answer: 0 },
+        { question: "What are some uses of MS Excel?", options: ["Data analysis", "Creating presentations", "Word processing", "Emailing"], answer: 0 },
+        { question: "Which of these is a feature of MS Excel?", options: ["Mail merge", "Database management", "Form creation", "Pivot tables"], answer: 3 },
+        { question: "How do you insert a picture in MS Word?", options: ["Go to Insert tab", "Right-click and select Insert", "Use a shortcut key", "Drag from desktop"], answer: 0 },
+        { question: "What feature does MS Access offer?", options: ["Table creation", "Image editing", "Text formatting", "Slide creation"], answer: 0 },
+        { question: "How do you create a Header in MS Word?", options: ["Insert tab, click Header", "Home tab, select Header", "Design tab, choose Header", "View tab, add Header"], answer: 0 },
+        { question: "What does the SUM function do in Excel?", options: ["Adds numbers", "Multiplies numbers", "Finds average", "Counts cells"], answer: 0 },
+        { question: "What is the extension for a PowerPoint file?", options: [".ppt", ".pptx", ".docx", ".xlsx"], answer: 1 },
+        { question: "Can you add cells in an Excel sheet?", options: ["Yes", "No", "Only in certain versions", "Only via formula"], answer: 0 },
+        { question: "How can you change row height in Excel?", options: ["Right-click and choose Row Height", "Use the Format menu", "Drag the border", "All of the above"], answer: 3 },
+        { question: "How to insert today's date in Excel?", options: ["=TODAY()", "=DATE()", "=NOW()", "=CURRENT()"], answer: 0 },
+        { question: "Why do we use the CONCATENATE formula in Excel?", options: ["To join text strings", "To split text", "To find duplicates", "To format cells"], answer: 0 },
+        { question: "What is the VLOOKUP formula in Excel?", options: ["=VLOOKUP(value, range)", "=LOOKUP(value, range)", "=HLOOKUP(value, range)", "=SEARCH(value, range)"], answer: 0 },
+        { question: "Which shortcut key starts a slideshow in PowerPoint?", options: ["F5", "Ctrl+S", "Alt+P", "Shift+S"], answer: 0 },
+        { question: "How do you print a query in MS Access?", options: ["Go to File menu", "Use shortcut Ctrl+P", "Right-click and select Print", "Go to Query menu"], answer: 0 },
+        { question: "What is data validation in Excel?", options: ["Controlling data entry", "Formatting cells", "Creating charts", "Calculating totals"], answer: 0 },
+        { question: "How to create a pivot table?", options: ["Insert tab, click PivotTable", "Data tab, choose PivotTable", "Home tab, select PivotTable", "Review tab, click PivotTable"], answer: 0 },
+        { question: "What does document protection do?", options: ["Prevents unauthorized changes", "Changes font style", "Inserts images", "Adjusts margins"], answer: 0 },
+        { question: "What is Find and Replace used for?", options: ["Searching and replacing text", "Formatting text", "Creating tables", "Adjusting margins"], answer: 0 },
+        { question: "What is the shortcut for Undo in MS Office?", options: ["Ctrl+Z", "Ctrl+Y", "Ctrl+C", "Ctrl+V"], answer: 0 },
+        { question: "What are Headers and Footers?", options: ["Sections for page numbers", "Formatting options", "Image sections", "Table options"], answer: 0 },
+        { question: "How can you change text alignment in MS Word?", options: ["Home tab, choose alignment", "Insert tab, select alignment", "View tab, click alignment", "Design tab, adjust alignment"], answer: 0 },
+        { question: "How to save a document in MS Word?", options: ["File menu, click Save", "Home tab, choose Save", "Right-click and select Save", "Insert tab, click Save"], answer: 0 },
+        { question: "How to change bullets in PowerPoint?", options: ["Select text, go to Home tab", "Insert tab, choose Bullets", "Design tab, adjust Bullets", "Review tab, select Bullets"], answer: 0 },
+        { question: "What is the shortcut to print a document?", options: ["Ctrl+P", "Ctrl+S", "Ctrl+V", "Ctrl+Z"], answer: 0 },
+        { question: "How to add page numbers in Word?", options: ["Insert tab, click Page Number", "Home tab, select Page Number", "Design tab, add Page Number", "View tab, choose Page Number"], answer: 0 },
+        { question: "How to create a text watermark in Word?", options: ["Design tab, click Watermark", "Insert tab, choose Watermark", "Home tab, select Watermark", "Review tab, add Watermark"], answer: 0 },
+        { question: "What is a hyperlink?", options: ["Link to another document or webpage", "A formatting tool", "An image type", "A text feature"], answer: 0 },
+        { question: "Which of the following is a common shortcut key?", options: ["Ctrl+C", "Ctrl+X", "Ctrl+V", "All of the above"], answer: 3 },
+        { question: "What does CPU stand for?", options: ["Central Processing Unit", "Computer Personal Unit", "Central Performance Unit", "Common Processing Unit"], answer: 0 },
+        { question: "Which of the following is a database management system?", options: ["Oracle", "Google", "Apache", "Linux"], answer: 0 },
+        { question: "Which file format is used for documents?", options: [".exe", ".docx", ".csv", ".mp3"], answer: 1 },
+        { question: "What is the main component of a computer?", options: ["Monitor", "CPU", "Keyboard", "Mouse"], answer: 1 },
+        { question: "Which of these is not an operating system?", options: ["Linux", "Windows", "Oracle", "macOS"], answer: 2 },
+        { question: "What is the heart of the computer?", options: ["Memory", "Hard Disk", "CPU", "Keyboard"], answer: 2 },
+        { question: "Which device is used to connect a computer to the internet?", options: ["Router", "Modem", "Switch", "Hub"], answer: 1 },
+        { question: "What is the common name for a microchip?", options: ["Circuit", "Transistor", "Integrated Circuit", "Resistor"], answer: 2 },
+        { question: "Which language is used for web development?", options: ["Java", "Python", "HTML", "C++"], answer: 2 },
+        { question: "What is an example of a spreadsheet program?", options: ["Word", "Excel", "PowerPoint", "Access"], answer: 1 },
+        { question: "Which company developed the Windows operating system?", options: ["Apple", "Microsoft", "Google", "IBM"], answer: 1 },
+        { question: "What is the main benefit of cloud computing?", options: ["Increased cost", "Data security", "Scalability", "No internet needed"], answer: 2 },
+        { question: "What is the primary function of a firewall?", options: ["Data storage", "Network security", "Software development", "Hardware maintenance"], answer: 1 },
+        // Add more questions to reach 40
+    ];
+
+    const prizeStructure = [1, 10, 20, 50, 100, 500, 1000, 5000, 10000, 50000, 100000, 500000, 1000000, 5000000, 10000000];
+    let currentQuestionIndex = 0;
+    let score = 0;
+    let lives = 3;
+    let selectedQuestions = [];
+
+    function register() {
+        const name = document.getElementById('name').value;
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+        if (name && email && password) {
+            localStorage.setItem('name', name);
+            localStorage.setItem('email', email);
+            localStorage.setItem('password', password);
+            alert("Registration Successful! Please login.");
+            document.getElementById('registrationContainer').classList.remove('visible');
+            document.getElementById('loginContainer').classList.add('visible');
+        } else {
+            alert("Please fill all fields.");
+        }
+    }
+
+    function login() {
+        const email = document.getElementById('loginEmail').value;
+        const password = document.getElementById('loginPassword').value;
+        const storedEmail = localStorage.getItem('email');
+        const storedPassword = localStorage.getItem('password');
+        if (email === storedEmail && password === storedPassword) {
+            document.getElementById('loginContainer').classList.remove('visible');
+            document.getElementById('quizContainer').classList.add('visible');
+            document.getElementById('welcomeMessage').innerText = `Welcome, ${localStorage.getItem('name')}!`;
+            prepareQuestions();
+            loadQuestion();
+        } else {
+            alert("Invalid login credentials.");
+        }
+    }
+
+    function prepareQuestions() {
+        const availableQuestions = [...questions];
+        selectedQuestions = [];
+        while (selectedQuestions.length < 15) {
+            const randomIndex = Math.floor(Math.random() * availableQuestions.length);
+            selectedQuestions.push(availableQuestions[randomIndex]);
+            availableQuestions.splice(randomIndex, 1);
+        }
+    }
+
+    function loadQuestion() {
+        if (currentQuestionIndex >= 15 || lives <= 0) {
+            endGame();
+            return;
+        }
+
+        const questionData = selectedQuestions[currentQuestionIndex];
+        document.getElementById('question').innerText = questionData.question;
+        const optionsList = document.getElementById('options');
+        optionsList.innerHTML = '';
+
+        questionData.options.forEach((option, index) => {
+            const li = document.createElement('li');
+            const button = document.createElement('button');
+            button.innerText = option;
+            button.onclick = () => checkAnswer(index, button);
+            li.appendChild(button);
+            optionsList.appendChild(li);
+        });
+    }
+
+    function checkAnswer(selectedOption, button) {
+        const correctSound = new Audio('data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEAwF0AAIhYAQACABAAZGF0YYgAAABcTgAATU4AAD9QAAA/WgAASU4AAE1KAABTTwAAT1EAAE9RAABMUQAAUk4AAE1KAABLUQAAS1EAAE1PAABKUQAAT1IAAEtQAABNUgAATU4AAD1MAAA8VAAAPFMAAD5VAAA9XwAASV0AAE5dAABSYwAAU2IAAFJgAABPYwAASmIAAE5iAABNaQAAQ2gAAD9oAABJcwAARW8AAE9vAABSYwAAU2UAAGJjAABjaAAAZ2sAAGlzAABraQAAa3QAAHZ2AAB5dQAAeXcAAHV5AAB5eQAAdnl6AHd5eAB0e3gAeHp6AHl4dAB2eXUAeXh1AHh5dQB2enUAeHV0AHl3dAB1d3QAd3l1AHV6dAB3enYAeHp2AHl4dQB5d3gAeXh4AHd6eAB2eHgAeXl5AHl4dQA='); 
+        const incorrectSound = new Audio('data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEAwF0AAIhYAQACABAAZGF0YYgAAABcTgAATU4AAD9QAAA/WgAASU4AAE1KAABTTwAAT1EAAE9RAABMUQAAUk4AAE1KAABLUQAAS1EAAE1PAABKUQAAT1IAAEtQAABNUgAATU4AAD1MAAA8VAAAPFMAAD5VAAA9XwAASV0AAE5dAABSYwAAU2IAAFJgAABPYwAASmIAAE5iAABNaQAAQ2gAAD9oAABJcwAARW8AAE9vAABSYwAAU2UAAGJjAABjaAAAZ2sAAGlzAABraQAAa3QAAHZ2AAB5dQAAeXcAAHV5AAB5eQAAdnl6AHd5eAB0e3gAeHp6AHl4dAB2eXUAeXh1AHh5dQB2enUAeHV0AHl3dAB1d3QAd3l1AHV6dAB3enYAeHp2AHl4dQB5d3gAeXh4AHd6eAB2eHgAeXl5AHl4dQA='); 
+
+        const questionData = selectedQuestions[currentQuestionIndex];
+        if (selectedOption === questionData.answer) {
+            button.classList.add('correct');
+            correctSound.play();
+            score = prizeStructure[currentQuestionIndex];
+            currentQuestionIndex++;
+        } else {
+            button.classList.add('incorrect');
+            incorrectSound.play();
+            lives--;
+            if (lives <= 0) {
+                endGame();
+                return;
+            }
+            currentQuestionIndex++;
+        }
+        updateScore();
+        updateLives();
+        setTimeout(loadQuestion, 1000);
+    }
+
+    function updateScore() {
+        document.getElementById('score').innerText = `Current Prize: ₹${score}`;
+    }
+
+    function updateLives() {
+        document.getElementById('lives').innerText = `Lives: ${'❤️'.repeat(lives)}${'🖤'.repeat(3 - lives)}`;
+    }
+
+    function endGame() {
+        if (score === 10000000) {
+            document.getElementById('quizContainer').classList.remove('visible');
+            document.getElementById('winnerContainer').classList.add('visible');
+        } else {
+            alert("Game Over! Better luck next time.");
+            location.reload();
+        }
+    }
+
+    function withdraw() {
+        document.getElementById('winnerContainer').classList.remove('visible');
+        document.getElementById('withdrawContainer').classList.add('visible');
+    }
+
+    function processWithdrawal() {
+        const bankAccount = document.getElementById('bankAccount').value;
+        const ifsc = document.getElementById('ifsc').value;
+        if (bankAccount && ifsc) {
+            document.getElementById('withdrawContainer').classList.remove('visible');
+            document.getElementById('successContainer').classList.add('visible');
+        } else {
+            alert("Please fill in all fields.");
+        }
+    }
+
+    function printCertificate() {
+    const name = localStorage.getItem('name');
+    const certificateWindow = window.open('', 'PRINT', 'height=600,width=800');
+
+    certificateWindow.document.write('<html><head><title>Certificate</title>');
+    certificateWindow.document.write('<style>');
+    certificateWindow.document.write('body { font-family: "Arial, sans-serif"; margin: 0; padding: 0; display: flex; justify-content: center; align-items: center; height: 100vh; background-color: #f3f4f6; }');
+    certificateWindow.document.write('.certificate { border: 15px solid #3a3a3c; padding: 50px; width: 70%; text-align: center; background-color: #fff; border-radius: 10px; box-shadow: 0 0 20px rgba(0, 0, 0, 0.1); }');
+    certificateWindow.document.write('h1 { font-size: 2.5em; margin-bottom: 0.5em; color: #3a3a3c; }');
+    certificateWindow.document.write('h2 { font-size: 2em; margin-bottom: 0.5em; color: #3a3a3c; }');
+    certificateWindow.document.write('p { font-size: 1.2em; margin-bottom: 1.5em; color: #3a3a3c; }');
+    certificateWindow.document.write('a { color: #3a3a3c; text-decoration: none; font-weight: bold; font-size: 0.8em; }');
+
+    // Print styles to hide everything except the certificate
+    certificateWindow.document.write('@media print { body { padding: 0; } .certificate { display: block; } }');
+    certificateWindow.document.write('@media print { * { display: none; } .certificate { display: block; } }');
+    
+    certificateWindow.document.write('</style>');
+    certificateWindow.document.write('</head><body>');
+    certificateWindow.document.write('<div class="certificate">');
+    certificateWindow.document.write('<h1>Certificate of Participation</h1>');
+    certificateWindow.document.write('<h2>Presented by DigitSync</h2>');
+    certificateWindow.document.write('<p>This certifies that</p>');
+    certificateWindow.document.write(`<h2>${name}</h2>`);
+    certificateWindow.document.write('<p>has successfully participated in a simulation of MCQ questions from a diploma course, covering various computer subjects including programming languages, database management, and software tools.</p>');
+    certificateWindow.document.write('<p><strong>E-MAX COMPUTER EDUCATION</strong></p>');
+    certificateWindow.document.write('<p>Rouf Uddin Ahmed, Computer Teacher & Game Creator</p>');
+    certificateWindow.document.write('<p>We appreciate your enthusiasm and effort!</p>');
+    certificateWindow.document.write('<p style="margin-top: 20px;">Visit our website: <a href="https://thedigitsync.blogspot.com" target="_blank">thedigitsync.blogspot.com</a></p>');
+    certificateWindow.document.write('</div>');
+    certificateWindow.document.write('</body></html>');
+
+    certificateWindow.document.close();
+    certificateWindow.document.focus();
+
+    // Add a timeout before printing
+    setTimeout(() => {
+        certificateWindow.print();
+        certificateWindow.close();
+    }, 500); // Adjust the delay as needed
+}
+
+    function closeInfo() {
+        document.getElementById('infoModal').style.display = "none";
+    }
+</script>
+
+</body>
+</html>
