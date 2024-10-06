@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -286,6 +287,14 @@
         }
     }
 
+    function showInfo() {
+        document.getElementById('infoModal').style.display = "block";
+    }
+
+    function closeInfo() {
+        document.getElementById('infoModal').style.display = "none";
+    }
+
     function prepareQuestions() {
         const availableQuestions = [...questions];
         selectedQuestions = [];
@@ -377,49 +386,45 @@
     }
 
     function printCertificate() {
-    const name = localStorage.getItem('name');
-    const certificateWindow = window.open('', 'PRINT', 'height=600,width=800');
+        const name = localStorage.getItem('name');
+        const certificateWindow = window.open('', 'PRINT', 'height=600,width=800');
 
-    certificateWindow.document.write('<html><head><title>Certificate</title>');
-    certificateWindow.document.write('<style>');
-    certificateWindow.document.write('body { font-family: "Arial, sans-serif"; margin: 0; padding: 0; display: flex; justify-content: center; align-items: center; height: 100vh; background-color: #f3f4f6; }');
-    certificateWindow.document.write('.certificate { border: 15px solid #3a3a3c; padding: 50px; width: 70%; text-align: center; background-color: #fff; border-radius: 10px; box-shadow: 0 0 20px rgba(0, 0, 0, 0.1); }');
-    certificateWindow.document.write('h1 { font-size: 2.5em; margin-bottom: 0.5em; color: #3a3a3c; }');
-    certificateWindow.document.write('h2 { font-size: 2em; margin-bottom: 0.5em; color: #3a3a3c; }');
-    certificateWindow.document.write('p { font-size: 1.2em; margin-bottom: 1.5em; color: #3a3a3c; }');
-    certificateWindow.document.write('a { color: #3a3a3c; text-decoration: none; font-weight: bold; font-size: 0.8em; }');
+        certificateWindow.document.write('<html><head><title>Certificate</title>');
+        certificateWindow.document.write('<style>');
+        certificateWindow.document.write('body { font-family: "Arial, sans-serif"; margin: 0; padding: 0; display: flex; justify-content: center; align-items: center; height: 100vh; background-color: #f3f4f6; }');
+        certificateWindow.document.write('.certificate { border: 15px solid #3a3a3c; padding: 50px; width: 70%; text-align: center; background-color: #fff; border-radius: 10px; box-shadow: 0 0 20px rgba(0, 0, 0, 0.1); }');
+        certificateWindow.document.write('h1 { font-size: 2.5em; margin-bottom: 0.5em; color: #3a3a3c; }');
+        certificateWindow.document.write('h2 { font-size: 2em; margin-bottom: 0.5em; color: #3a3a3c; }');
+        certificateWindow.document.write('p { font-size: 1.2em; margin-bottom: 1.5em; color: #3a3a3c; }');
+        certificateWindow.document.write('a { color: #3a3a3c; text-decoration: none; font-weight: bold; font-size: 0.8em; }');
 
-    // Print styles to hide everything except the certificate
-    certificateWindow.document.write('@media print { body { padding: 0; } .certificate { display: block; } }');
-    certificateWindow.document.write('@media print { * { display: none; } .certificate { display: block; } }');
-    
-    certificateWindow.document.write('</style>');
-    certificateWindow.document.write('</head><body>');
-    certificateWindow.document.write('<div class="certificate">');
-    certificateWindow.document.write('<h1>Certificate of Participation</h1>');
-    certificateWindow.document.write('<h2>Presented by DigitSync</h2>');
-    certificateWindow.document.write('<p>This certifies that</p>');
-    certificateWindow.document.write(`<h2>${name}</h2>`);
-    certificateWindow.document.write('<p>has successfully participated in a simulation of MCQ questions from a diploma course, covering various computer subjects including programming languages, database management, and software tools.</p>');
-    certificateWindow.document.write('<p><strong>E-MAX COMPUTER EDUCATION</strong></p>');
-    certificateWindow.document.write('<p>Rouf Uddin Ahmed, Computer Teacher & Game Creator</p>');
-    certificateWindow.document.write('<p>We appreciate your enthusiasm and effort!</p>');
-    certificateWindow.document.write('<p style="margin-top: 20px;">Visit our website: <a href="https://thedigitsync.blogspot.com" target="_blank">thedigitsync.blogspot.com</a></p>');
-    certificateWindow.document.write('</div>');
-    certificateWindow.document.write('</body></html>');
+        // Print styles to hide everything except the certificate
+        certificateWindow.document.write('@media print { body { padding: 0; } .certificate { display: block; } }');
+        certificateWindow.document.write('@media print { * { display: none; } .certificate { display: block; } }');
 
-    certificateWindow.document.close();
-    certificateWindow.document.focus();
+        certificateWindow.document.write('</style>');
+        certificateWindow.document.write('</head><body>');
+        certificateWindow.document.write('<div class="certificate">');
+        certificateWindow.document.write('<h1>Certificate of Participation</h1>');
+        certificateWindow.document.write('<h2>Presented by DigitSync</h2>');
+        certificateWindow.document.write('<p>This certifies that</p>');
+        certificateWindow.document.write(`<h2>${name}</h2>`);
+        certificateWindow.document.write('<p>has successfully participated in a simulation of MCQ questions from a diploma course, covering various computer subjects including programming languages, database management, and software tools.</p>');
+        certificateWindow.document.write('<p><strong>E-MAX COMPUTER EDUCATION</strong></p>');
+        certificateWindow.document.write('<p>Rouf Uddin Ahmed, Computer Teacher & Game Creator</p>');
+        certificateWindow.document.write('<p>We appreciate your enthusiasm and effort!</p>');
+        certificateWindow.document.write('<p style="margin-top: 20px;">Visit our website: <a href="https://thedigitsync.blogspot.com" target="_blank">thedigitsync.blogspot.com</a></p>');
+        certificateWindow.document.write('</div>');
+        certificateWindow.document.write('</body></html>');
 
-    // Add a timeout before printing
-    setTimeout(() => {
-        certificateWindow.print();
-        certificateWindow.close();
-    }, 500); // Adjust the delay as needed
-}
+        certificateWindow.document.close();
+        certificateWindow.document.focus();
 
-    function closeInfo() {
-        document.getElementById('infoModal').style.display = "none";
+        // Add a timeout before printing
+        setTimeout(() => {
+            certificateWindow.print();
+            certificateWindow.close();
+        }, 500); // Adjust the delay as needed
     }
 </script>
 
